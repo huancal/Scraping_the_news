@@ -1,15 +1,12 @@
 const express = require("express");
-const exphbs = require("express-handlebars");
-const bodyParser = require("body-parser");
-const logger = require("morgan");
+const exphbs = require("express-handlebars")
 const mongoose = require("mongoose");
 const cheerio = require("cheerio");
 const axios = require("axios");
 const db = require("./models");
-const path = require("path");
 const app = express();
 
-mongoose.connect("mongodb://localhost/scrapedb", {useNewUrlParser:true, useUnifiedTopology: true})
+// mongoose.connect("mongodb://localhost/scrapedb", {useNewUrlParser:true, useUnifiedTopology: true})
 
 const connection = mongoose.connection;
 
@@ -18,11 +15,11 @@ const MONGO_URI =
 
 const PORT = process.env.PORT || 4000; 
 
-mongoose.connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useFindAndModify: false
-  });
+// mongoose.connect(MONGO_URI, {
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true,
+//     useFindAndModify: false
+//   });
 
 connection.on("error", console.error.bind(console, "connection error:"));
 connection.once("open", function () {
@@ -33,24 +30,14 @@ connection.once("open", function () {
 app.use(express.urlencoded({
     extended: true
 }));
-
 app.use(express.json());
 app.use(express.static("./public"));
-app.use(bodyParser.urlencoded({
-    extended: false
-}));
 
-app.use(logger("dev"));
+app.engine("handlebars", exphbs({ defaultLayout: "main" }));
+app.set("view engine", "handlebars");
+app.set('index', __dirname + '/views');
 
-app.get("/", function (req, res) {
-    res.sendFile(path.join(__dirname, "/public/index.html"));
-})
-
-app.get("/saved", function (req, res) {
-    res.sendFile(path.join(__dirname, "/public/saved.html"));
-})
-
-let results = [];
+var results = [];
 
 app.get("/", function (req, res) {
     db.Article.find({ saved: false }, function (err, result) {
