@@ -5,13 +5,17 @@ const ArticleSchema = new Schema({
   headline: {
     type: String,
     trim: true,
-    required: "String is required"
+    required: true
   },
   link: {
     type: String,
     trim: true,
-    required: "String is required"
-  },
+    required: true
+    },
+    saved: {
+        type: Boolean,
+        default: false
+  }
 });
 
 const Article = mongoose.model("Article", ArticleSchema);

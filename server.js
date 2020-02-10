@@ -1,13 +1,12 @@
 const express = require("express");
+const exphbs = require("express-handlebars");
 const bodyParser = require("body-parser");
 const logger = require("morgan");
 const mongoose = require("mongoose");
 const cheerio = require("cheerio");
 const axios = require("axios");
-const colors = require("colors");
 const db = require("./models");
 const path = require("path");
-
 const app = express();
 
 mongoose.connect("mongodb://localhost/scrapedb", {useNewUrlParser:true, useUnifiedTopology: true})
@@ -36,16 +35,12 @@ app.use(express.urlencoded({
 }));
 
 app.use(express.json());
-app.use(express.static("./views"));
+app.use(express.static("./public"));
 app.use(bodyParser.urlencoded({
     extended: false
 }));
 
 app.use(logger("dev"));
-
-app.listen(PORT, () => {
-    console.log(`listening at: http://localhost:${PORT}`);
-});
 
 app.get("/", function (req, res) {
     res.sendFile(path.join(__dirname, "/public/index.html"));
@@ -55,45 +50,47 @@ app.get("/saved", function (req, res) {
     res.sendFile(path.join(__dirname, "/public/saved.html"));
 })
 
+let results = [];
+
+app.get("/", function (req, res) {
+    db.Article.find({ saved: false }, function (err, result) {
+        if (err) throw err; 
+        res.render("index", {result})
+    })
+})
 
 
 // GET request for scraping huffington post 
 
-app.get("/scrape",(req, res) =>{
+app.get("/scrape",function (req, res){
     
     axios.get("https://www.huffpost.com/").then(urlResponse => {
         const $ = cheerio.load(urlResponse.data);
-    
-        let counter = 0; 
 
         $("div.card__headlines").each((i, element) => {
-
-            let result = {};
-
             const url = $(element).find("a").attr("href");
-
             const header = $(element).find("a").text();
-
             console.log(header.yellow);
             console.log(link.cyan);
             console.log("----------------------\n");
-
-            result.headline = header;
-            result.link = url;
-
-            if (result.headline && result.link) {
+            if (url && header) {
+                results.push({
+                    url: url,
+                    header: header
+                })   
+            }     
+        })
+        db.Article.create(result)
+            .then(function (dbArticle) {
+                res.render("index", { dbArticle });
+                console.log(dbArticle);
+        })
+            .catch(function (err) {
+                console.log(err);
                 
-                db.Article.create(result).then(function (dbArticle) {
-                    console.log(dbArticle);
-                    counter++;
-                    console.log("added" + counter + "new items");
-                    
-                })
-                    .catch(function (err) {
-                        return res.json(err);
-                    });
-                console.log(result);
-            }       
+            });
+        app.get("/", function (req, res) {
+            res.render("index")
         })
     });
 });
@@ -101,12 +98,15 @@ app.get("/scrape",(req, res) =>{
 
 // Get route to grab articles from db
 
-app.get("/articles", (req, res) => {
-    db.Article.find({})
-        .then((dbArticle) => {
-            res.json(dbArticle);
-        })
-        .catch((err) => {
-            res.json(err);
-        })
+app.get("/saved", function (req, res) {
+    let savedArticles = []
+    db.Article.find({ saved: true }, function (er, saved) {
+        if (err) throw err; 
+        savedArticles.push(saved)
+        res.render("saved", {saved})
+    })      
+});
+
+app.listen(PORT, () => {
+    console.log(`listening at: http://localhost:${PORT}`);
 });
