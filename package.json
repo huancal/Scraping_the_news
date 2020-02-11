@@ -2,10 +2,11 @@
   "name": "Scraping_the_news",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "start": "nodemon server.js"
   },
   "repository": {
     "type": "git",
