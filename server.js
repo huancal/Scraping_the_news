@@ -3,7 +3,7 @@ const exphbs = require("express-handlebars")
 const mongoose = require("mongoose");
 const cheerio = require("cheerio");
 const axios = require("axios");
-const db = require("./models");
+const db = require("./models/index.js");
 const app = express();
 
 // mongoose.connect("mongodb://localhost/scrapedb", {useNewUrlParser:true, useUnifiedTopology: true})
@@ -13,7 +13,7 @@ const connection = mongoose.connection;
 const MONGO_URI =
   process.env.MONGODB_URI || "mongodb://localhost/scrapedb";
 
-const PORT = process.env.PORT || 4000; 
+const PORT = process.env.PORT || 3000; 
 
 // mongoose.connect(MONGO_URI, {
 //     useNewUrlParser: true,
@@ -31,7 +31,7 @@ app.use(express.urlencoded({
     extended: true
 }));
 app.use(express.json());
-app.use(express.static("./public"));
+app.use(express.static("public"));
 
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
